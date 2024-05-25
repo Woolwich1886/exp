@@ -38,7 +38,7 @@ public class TokenFilter extends OncePerRequestFilter {
         if (Objects.isNull(authentication) || !authentication.isAuthenticated()) {
             String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             String bearer = "%s ".formatted(TokenType.BEARER.getCode());
-            if (Objects.nonNull(authHeader) && authHeader.startsWith(bearer)) {
+            if (authHeader != null && authHeader.startsWith(bearer)) {
                 String token = authHeader.substring(bearer.length());
                 String login;
                 try {
@@ -48,9 +48,15 @@ public class TokenFilter extends OncePerRequestFilter {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
                     return;
                 }
-                if (Objects.nonNull(login)
-                        && !tokenService.isExpired(token)
-                        && appUserService.findByLogin(login).isPresent()) {
+
+                if (!tokenService.isValid(token)) {
+                    String err = "Токен невалиден (истек или отозван). Попробуйте авторизоваться заново";
+                    logger.error(err);
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, err);
+                    return;
+                }
+
+                if (login != null && appUserService.findByLogin(login).isPresent()) {
                     UserDetails user = appUserService.getByLogin(login);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             user,
@@ -71,7 +77,7 @@ public class TokenFilter extends OncePerRequestFilter {
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        Set<String> whiteList = Set.of("/api/create", "/api/users");
+        Set<String> whiteList = Set.of("/api/create", "/api/users", "/api/tokens");
         return whiteList.contains(request.getRequestURI());
     }
 

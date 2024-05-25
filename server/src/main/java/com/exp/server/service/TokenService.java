@@ -3,6 +3,7 @@ package com.exp.server.service;
 import com.exp.server.data.TokenRepository;
 import com.exp.server.entity.AppUser;
 import com.exp.server.entity.Token;
+import com.exp.server.rest.dto.TokenInfoDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,11 @@ public class TokenService {
     private String secret;
     private final TokenRepository repository;
 
-    public void saveRefreshToken(String refreshTokenValue, AppUser user) {
+    public List<TokenInfoDTO> getAllTokensAsDTO() {
+        return repository.findAll().stream().map(TokenInfoDTO::toDTO).collect(Collectors.toList());
+    }
+
+    public void saveAccessToken(String refreshTokenValue, AppUser user) {
         var refreshToken = new Token();
         refreshToken.setTokenValue(refreshTokenValue);
         refreshToken.setRevoked(false);
@@ -37,20 +43,19 @@ public class TokenService {
         repository.save(refreshToken);
     }
 
-    public Optional<Token> findByTokenValue(String tokenValue) {
-        return repository.findFirstByTokenValue(tokenValue);
-    }
-
-    // можно удалять
     public void revokeTokenByValue(String tokenValue) {
-        findByTokenValue(tokenValue).ifPresent(token -> {
-            System.out.println(token.getId());
-            token.setRevoked(true);
-            repository.save(token);
-        });
+        Optional<Token> optToken = repository.findFirstByTokenValue(tokenValue);
+        if (optToken.isEmpty()) {
+            throw new RuntimeException("Невозможно выйти. Не найден токен!");
+        }
+        Token token = optToken.get();
+        if (token.isRevoked()) {
+            throw new RuntimeException("Невозможно выйти. Токен уже невалиден");
+        }
+        token.setRevoked(true);
+        repository.save(token);
     }
 
-    // можно удалять
     public void revokeAllTokensByUser(AppUser appUser) {
         List<Token> tokens = repository.findAllByAppUser(appUser);
         tokens.forEach(token -> token.setRevoked(true));
@@ -65,6 +70,15 @@ public class TokenService {
         return generateToken(user, refreshTime);
     }
 
+    public boolean isValid(String tokenValue) {
+        try {
+            Token token = repository.getFirstByTokenValueAndIsRevoked(tokenValue, false);
+            return !isExpired(tokenValue) && !token.isRevoked();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public boolean isExpired(String token) {
         try {
             return getClaims(token).getExpiration().before(new Date());
@@ -73,7 +87,6 @@ public class TokenService {
         }
     }
 
-    // надо бы тоже обернуть в try/catch
     public String extractLogin(String token) {
         return getClaims(token).getSubject();
     }
@@ -88,15 +101,10 @@ public class TokenService {
                 .compact();
     }
 
-    /**
-     * Может бросить ошибку в случае, если у токена вышел срок годности
-     */
-    private Claims getClaims(String token) throws JwtException, IllegalArgumentException{
+    private Claims getClaims(String token) throws JwtException, IllegalArgumentException {
         return Jwts.parser().verifyWith(getSecretKey()).build().parseSignedClaims(token).getPayload();
     }
 
-    // в зависимости от длины secret'a подбирает кодировку
-    // возвращаем именно SecretKey, а не Key
     private SecretKey getSecretKey() {
         byte[] byteSecret = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(byteSecret);

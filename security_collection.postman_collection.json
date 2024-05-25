@@ -1,0 +1,106 @@
+{
+	"info": {
+		"_postman_id": "95e60376-4bae-4b33-93e8-489ce00d2412",
+		"name": "security_collection",
+		"description": "По умолчанию и приложение и коллекция используют localhost:8080.\n\n# Пользователи\n\n1. username: admin, password: 111, role: ADMIN\n2. username: user, password: 11, role: USER\n3. username: reader, password: 1, role: READER\n    \n\n# /auth\n\nЭти запросы делаются из \"корня\" коллекции.  \nВыбираем `Local`, вкладка 'Authorization'.  \nЗаполняем нужными данными поля Username и Password.  \nПроматываем вниз, логинимся через Get New Access Token.  \nОбновляем токен по нажатию на Refresh, находится под полем Token на этой же вкладке.\n\n# /api\n\n## требуется авторизация\n\nGET /access/reader - проверить у пользователя права на роль READER  \nGET /access/user - проверить у пользователя права на роль USER  \nGET /access/admin - проверить у пользователя права на роль ADMIN\n\n## НЕ требуется авторизация\n\nGET /users - получить список доступных пользователей с их логинами, паролями и ролями  \nGET /tokens - получить список токенов со значением, статусом и пользователем  \nPOST /create - добавить нового пользователя\n\n## выход/очистка контекста/отзыв токена\n\nPOST /logout",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "17883012"
+	},
+	"item": [
+		{
+			"name": "Проверить доступ Reader",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/api/access/reader"
+			},
+			"response": []
+		},
+		{
+			"name": "Проверить доступ User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/api/access/reader"
+			},
+			"response": []
+		},
+		{
+			"name": "Проверить доступ Admin",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/api/access/admin"
+			},
+			"response": []
+		},
+		{
+			"name": "Получить список юзеров",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/api/users"
+			},
+			"response": []
+		},
+		{
+			"name": "Получить список токенов",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/api/users"
+			},
+			"response": []
+		},
+		{
+			"name": "Добавить юзера",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Выйти",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "http://localhost:8080/auth/logout"
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": {
+			"accessTokenUrl": "http://localhost:8080/auth/login",
+			"password": "111",
+			"username": "admin",
+			"grant_type": "password_credentials",
+			"client_authentication": "header",
+			"authUrl": "http://localhost:8080/auth/loginn",
+			"addTokenTo": "header"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

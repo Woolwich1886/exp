@@ -1,7 +1,6 @@
 package com.exp.server.service;
 
 import com.exp.server.entity.AppUser;
-import com.exp.server.entity.Token;
 import com.exp.server.enumeration.TokenType;
 import com.exp.server.rest.dto.TokenDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +13,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 import java.util.Optional;
 
 
@@ -35,7 +33,8 @@ public class AuthService implements LogoutHandler {
         }
         String accessToken = tokenService.generateAccessToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
-        tokenService.saveRefreshToken(refreshToken, user);
+        tokenService.revokeAllTokensByUser(user);
+        tokenService.saveAccessToken(accessToken, user);
 
         var tokenDTO = new TokenDTO();
         tokenDTO.setAccessToken(accessToken);
@@ -51,24 +50,23 @@ public class AuthService implements LogoutHandler {
     ) {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         String bearer = "%s ".formatted(TokenType.BEARER.getCode());
-        if (Objects.nonNull(authHeader) && authHeader.startsWith(bearer)) {
+        if (authHeader != null && authHeader.startsWith(bearer)) {
             String token = authHeader.substring(bearer.length());
             tokenService.revokeTokenByValue(token);
         }
     }
 
     public TokenDTO refreshToken(String refreshToken) {
-        if (Objects.nonNull(refreshToken)) {
-            Token oldRefreshToken = tokenService.findByTokenValue(refreshToken)
-                    .orElseThrow(() -> new RuntimeException("Токена нет"));
+        if (refreshToken != null && !tokenService.isExpired(refreshToken)) {
             String login = tokenService.extractLogin(refreshToken);
             Optional<AppUser> optUser = appUserService.findByLogin(login);
-            if (optUser.isPresent() && !tokenService.isExpired(refreshToken) && !oldRefreshToken.isRevoked()) {
+            if (optUser.isPresent()) {
                 AppUser user = optUser.get();
                 tokenService.revokeAllTokensByUser(optUser.get());
                 String newAccessToken = tokenService.generateAccessToken(user);
                 String newRefreshToken = tokenService.generateRefreshToken(user);
-                tokenService.saveRefreshToken(refreshToken, user);
+                tokenService.saveAccessToken(newAccessToken, user);
+
                 TokenDTO tokenDTO = new TokenDTO();
                 tokenDTO.setAccessToken(newAccessToken);
                 tokenDTO.setRefreshToken(newRefreshToken);

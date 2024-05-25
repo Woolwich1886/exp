@@ -6,9 +6,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 
+@Getter
 @MappedSuperclass
 public abstract class BaseEntity {
 
+    /**
+     * Идентификатор
+     */
     @Id
     @Getter
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

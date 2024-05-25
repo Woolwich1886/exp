@@ -10,4 +10,5 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     Optional<AppUser> findFirstByLogin(String login);
 
     AppUser getByLogin(String login);
+
 }

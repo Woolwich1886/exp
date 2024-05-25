@@ -19,5 +19,5 @@ security:
   ## 256 bit строка для токена
   appSecret: JNbiCvuU1G1ZNYjhIY1NGHPJxsvRGucH
   token:
-    accessTime: 360000
+    accessTime: 100000
     refreshTime: 360000

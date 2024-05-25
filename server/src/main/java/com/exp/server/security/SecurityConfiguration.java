@@ -26,8 +26,8 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .addFilterBefore(tokenFilter, BasicAuthenticationFilter.class)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // отключаем кучу всего
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .anonymous(AbstractHttpConfigurer::disable)
@@ -39,13 +39,16 @@ public class SecurityConfiguration {
                                 .requestMatchers("/h2-console/**").permitAll()
                                 // auth
                                 .requestMatchers("/auth/login").permitAll()
-                                .requestMatchers("/auth/refresh_token").permitAll()
+                                .requestMatchers("/auth/refresh-token").permitAll()
                                 .requestMatchers("/auth/logout").authenticated()
                                 // test api
+                                .requestMatchers("/api/users").permitAll()
+                                .requestMatchers("/api/create").permitAll()
+                                .requestMatchers("/api/tokens").permitAll()
+                                .requestMatchers("/api/access").authenticated()
                                 .requestMatchers("/api/access/admin").hasRole(AppRole.ADMIN.name())
                                 .requestMatchers("/api/access/user").hasAnyRole(AppRole.ADMIN.name(), AppRole.USER.name())
                                 .requestMatchers("/api/access/reader").hasAnyRole(AppRole.ADMIN.name(), AppRole.USER.name(), AppRole.READER.name())
-
                                 //
                                 .anyRequest().authenticated()
                 )

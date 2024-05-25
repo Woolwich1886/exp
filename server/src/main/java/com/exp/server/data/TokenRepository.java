@@ -11,6 +11,8 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
 
     Optional<Token> findFirstByTokenValue(String tokenValue);
 
+    Token getFirstByTokenValueAndIsRevoked(String tokenValue, boolean isRevoked);
+
     List<Token> findAllByAppUser(AppUser appUser);
 
 }

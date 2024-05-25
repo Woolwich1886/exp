@@ -7,6 +7,7 @@ import com.exp.server.rest.dto.AppUserCreationDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -32,11 +33,11 @@ public class AppUserService {
         repository.save(newAppUser);
     }
 
-    public String getAllUserDataAsString() {
+    public List<AppUserCreationDTO> getAllUserDataAsDTO() {
         return repository.findAll()
                 .stream()
-                .map(u -> "{ Логин: %s, Пароль: %s, Роль: %s }".formatted(u.getUsername(), u.getPassword(), u.getRole()))
-                .collect(Collectors.joining(", "));
+                .map(AppUserCreationDTO::toDTO)
+                .collect(Collectors.toList());
     }
 
 }
