@@ -74,12 +74,13 @@
 	"auth": {
 		"type": "oauth2",
 		"oauth2": {
+			"refreshTokenUrl": "http://localhost:8080/auth/refresh-token",
 			"accessTokenUrl": "http://localhost:8080/auth/login",
 			"password": "111",
 			"username": "admin",
 			"grant_type": "password_credentials",
 			"client_authentication": "header",
-			"authUrl": "http://localhost:8080/auth/loginn",
+			"authUrl": "http://localhost:8080/auth/login",
 			"addTokenTo": "header"
 		}
 	},
